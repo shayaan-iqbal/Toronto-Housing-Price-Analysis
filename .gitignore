@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+/Lib/
+/Scripts/
+/share/
+data/raw/*.csv
+data/processed/*.csv
+reports/*.csv
+reports/*.json
+reports/*.md
+reports/figures/*.png
