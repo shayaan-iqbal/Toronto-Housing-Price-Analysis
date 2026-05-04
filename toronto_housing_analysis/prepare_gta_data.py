@@ -29,14 +29,14 @@ def parse_bedrooms(details: object) -> float | None:
     text = str(details).lower()
     if "studio" in text:
         return 0.0
-    match = re.search(r"(\d+(?:\.\d+)?)\s*bds?\b", text)
+    match = re.search(r"(\d+(?:\.\d+)?)\s*bds?", text)
     return float(match.group(1)) if match else None
 
 
 def parse_bathrooms(details: object) -> float | None:
     if pd.isna(details):
         return None
-    match = re.search(r"(\d+(?:\.\d+)?)\s*ba\b", str(details).lower())
+    match = re.search(r"(\d+(?:\.\d+)?)\s*ba", str(details).lower())
     return float(match.group(1)) if match else None
 
 
@@ -51,16 +51,28 @@ def parse_property_type(details: object) -> str:
     if pd.isna(details):
         return "Unknown"
     text = re.sub(r"\s+", " ", str(details).strip())
-    match = re.search(r"-\s*(.*?)\s+for sale", text, flags=re.IGNORECASE)
-    if match:
-        return match.group(1).strip().title()
-    if "condo" in text.lower():
+    listing_type = text.rsplit("-", 1)[-1]
+    listing_type = re.sub(r"\s*for sale\s*$", "", listing_type, flags=re.IGNORECASE)
+    listing_type = listing_type.strip()
+    if listing_type:
+        return listing_type.title()
+    lowered = text.lower()
+    if "condo" in lowered:
         return "Condo"
-    if "townhouse" in text.lower():
+    if "townhouse" in lowered:
         return "Townhouse"
-    if "house" in text.lower():
+    if "house" in lowered:
         return "House"
     return "Unknown"
+
+
+def parse_postal_code(address: object) -> str | None:
+    if pd.isna(address):
+        return None
+    match = re.search(r"\b([A-Z]\d[A-Z])\s?(\d[A-Z]\d)\b", str(address).upper())
+    if not match:
+        return None
+    return f"{match.group(1)} {match.group(2)}"
 
 
 def city_from_path(csv_path: Path) -> str:
@@ -95,6 +107,8 @@ def load_gta_csvs(source_root: Path = DEFAULT_SOURCE_ROOT) -> pd.DataFrame:
     df["bathrooms"] = df["details"].map(parse_bathrooms)
     df["square_feet"] = df["details"].map(parse_square_feet)
     df["property_type"] = df["details"].map(parse_property_type)
+    df["postal_code"] = df["address"].map(parse_postal_code)
+    df["postal_fsa"] = df["postal_code"].str.slice(0, 3)
 
     return df[
         [
@@ -106,6 +120,8 @@ def load_gta_csvs(source_root: Path = DEFAULT_SOURCE_ROOT) -> pd.DataFrame:
             "property_type",
             "city",
             "neighborhood",
+            "postal_code",
+            "postal_fsa",
             "snapshot_date",
             "details",
             "source_file",
