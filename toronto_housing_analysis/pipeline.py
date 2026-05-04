@@ -26,7 +26,6 @@ import matplotlib.pyplot as plt
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_MAIN_PATH = DATA_DIR / "raw" / "toronto_housing.csv"
-RAW_SAMPLE_PATH = DATA_DIR / "raw" / "toronto_housing_sample.csv"
 PROCESSED_PATH = DATA_DIR / "processed" / "cleaned_toronto_housing.csv"
 REPORT_DIR = PROJECT_ROOT / "reports"
 FIGURE_DIR = REPORT_DIR / "figures"
@@ -705,11 +704,9 @@ def resolve_input_path(cli_input: str | None) -> Path:
         return path
     if RAW_MAIN_PATH.exists():
         return RAW_MAIN_PATH
-    if RAW_SAMPLE_PATH.exists():
-        return RAW_SAMPLE_PATH
     raise FileNotFoundError(
-        "No input CSV found. Add data/raw/toronto_housing.csv or run "
-        "`python -m toronto_housing_analysis.generate_sample_data` first."
+        "No input CSV found. Run `python -m toronto_housing_analysis.prepare_gta_data` "
+        "or add data/raw/toronto_housing.csv."
     )
 
 
@@ -744,7 +741,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run Toronto housing price analysis.")
     parser.add_argument(
         "--input",
-        help="Optional CSV path. Defaults to data/raw/toronto_housing.csv, then sample data.",
+        help="Optional CSV path. Defaults to data/raw/toronto_housing.csv.",
     )
     args = parser.parse_args()
     run(resolve_input_path(args.input))
